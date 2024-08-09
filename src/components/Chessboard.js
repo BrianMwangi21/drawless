@@ -6,6 +6,7 @@ import Chessground from '@react-chess/chessground';
 import 'chessground/assets/chessground.base.css';
 import 'chessground/assets/chessground.brown.css';
 import 'chessground/assets/chessground.cburnett.css';
+import { getBestMoveFromStockfish } from './../utils/stockfish'
 
 export default function Chessboard() {
   const getValidMoves = (chessInstance) => {
@@ -27,23 +28,41 @@ export default function Chessboard() {
     }
   };
 
-  const playBlackMove = () => {
-    const possibleMoves = chess.moves({ verbose: true });
-    if (possibleMoves.length === 0) return;
+  const playBlackMove = async () => {
+    const fen = chess.fen();
+    const bestMove = await getBestMoveFromStockfish(fen);
 
-    const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-    chess.move(randomMove);
+    if (bestMove) {
+      chess.move(bestMove);
 
-    setConfig({
-      ...config,
-      fen: chess.fen(),
-      turnColor: 'white',
-      movable: {
-        ...config.movable,
-        color: 'white',
-        dests: getValidMoves(chess)
-      }
-    });
+      setConfig({
+        ...config,
+        fen: chess.fen(),
+        turnColor: 'white',
+        movable: {
+          ...config.movable,
+          color: 'white',
+          dests: getValidMoves(chess),
+        },
+      });
+    }
+
+    // const possibleMoves = chess.moves({ verbose: true });
+    // if (possibleMoves.length === 0) return;
+    //
+    // const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+    // chess.move(randomMove);
+    //
+    // setConfig({
+    //   ...config,
+    //   fen: chess.fen(),
+    //   turnColor: 'white',
+    //   movable: {
+    //     ...config.movable,
+    //     color: 'white',
+    //     dests: getValidMoves(chess)
+    //   }
+    // });
   };
 
   const [chess, setChess] = useState(new Chess());
@@ -61,7 +80,16 @@ export default function Chessboard() {
           onMove(orig, dest);
         },
       }
-    }
+    },
+    highlight: {
+      lastMove: true,
+      check: true,
+    },
+    drawable: {
+      enabled: true,
+      visible: true,
+      eraseOnClick: true,
+    },
   });
 
   return (
