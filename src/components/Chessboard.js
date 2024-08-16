@@ -5,6 +5,7 @@ import { Chess, SQUARES } from 'chess.js';
 import Chessground from '@react-chess/chessground';
 import { RxAvatar } from "react-icons/rx";
 import { FaRobot } from "react-icons/fa";
+import Timer from './Timer';
 import 'chessground/assets/chessground.base.css';
 import 'chessground/assets/chessground.brown.css';
 import 'chessground/assets/chessground.cburnett.css';
@@ -45,6 +46,7 @@ export default function Chessboard() {
   };
 
   const playOpponentMove = async () => {
+    setTurnColor(prevColor => prevColor == 'white' ? 'black' : 'white');
     const fen = chess.fen();
     const bestMove = await getBestMoveFromStockfish(fen);
 
@@ -62,6 +64,7 @@ export default function Chessboard() {
           dests: getValidMoves(chess),
         },
       }));
+      setTurnColor(prevColor => prevColor == 'white' ? 'black' : 'white');
     }
   };
 
@@ -114,6 +117,10 @@ export default function Chessboard() {
     });
   }
 
+  const onTimeEnd = () => {
+    // What happens when time ends is a mystery
+  }
+
   const insertRandomPiece = () => {
     // Here is where the magic is
   }
@@ -121,6 +128,7 @@ export default function Chessboard() {
   const [chess, setChess] = useState(new Chess());
   const [moveHistory, setMoveHistory] = useState([]);
   const [userColor, setUserColor] = useState('white');
+  const [turnColor, setTurnColor] = useState(userColor);
   const [config, setConfig] = useState({
     fen: chess.fen(),
     orientation: userColor,
@@ -162,6 +170,7 @@ export default function Chessboard() {
               <FaRobot size={32} />
               <p className="font-bold text-xl">Bot (Stockfish - depth 10)</p>
             </div>
+            <Timer initialTime={10} onPause={userColor == turnColor} onTimeOut={() => alert("Time's up!")} />
           </div>
 
           <Chessground
@@ -175,6 +184,7 @@ export default function Chessboard() {
               <RxAvatar size={32} />
               <p className="font-bold text-xl">You</p>
             </div>
+            <Timer initialTime={10} onPause={userColor != turnColor} onTimeOut={() => alert("Time's up!")} />
           </div>
 
         </div>
