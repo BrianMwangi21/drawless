@@ -70,6 +70,7 @@ export default function Chessboard() {
 
   const resetGame = () => {
     chess.reset();
+    setTimeControl(10);
     setMoveHistory([]);
     setConfig(prevConfig => ({
       ...prevConfig,
@@ -95,6 +96,7 @@ export default function Chessboard() {
 
   const changeOrientation = () => {
     chess.reset();
+    setTimeControl(10);
     setMoveHistory([]);
     setUserColor(prevColor => {
       const newColor = prevColor === 'white' ? 'black' : 'white';
@@ -113,6 +115,7 @@ export default function Chessboard() {
           check: false,
         },
       }));
+      setTurnColor(newColor);
       return newColor;
     });
   }
@@ -129,6 +132,7 @@ export default function Chessboard() {
   const [moveHistory, setMoveHistory] = useState([]);
   const [userColor, setUserColor] = useState('white');
   const [turnColor, setTurnColor] = useState(userColor);
+  const [timeControl, setTimeControl] = useState(10);
   const [config, setConfig] = useState({
     fen: chess.fen(),
     orientation: userColor,
@@ -170,7 +174,7 @@ export default function Chessboard() {
               <FaRobot size={32} />
               <p className="font-bold text-xl">Bot (Stockfish - depth 10)</p>
             </div>
-            <Timer initialTime={10} onPause={userColor == turnColor} onTimeOut={() => alert("Time's up!")} />
+            <Timer initialTime={timeControl} onPause={userColor == turnColor} onTimeOut={() => alert("Time's up!")} />
           </div>
 
           <Chessground
@@ -184,7 +188,7 @@ export default function Chessboard() {
               <RxAvatar size={32} />
               <p className="font-bold text-xl">You</p>
             </div>
-            <Timer initialTime={10} onPause={userColor != turnColor} onTimeOut={() => alert("Time's up!")} />
+            <Timer initialTime={timeControl} onPause={userColor != turnColor} onTimeOut={() => alert("Time's up!")} />
           </div>
 
         </div>
@@ -194,13 +198,21 @@ export default function Chessboard() {
           <div className="h-full w-full flex-col gap-2 overflow-auto">
             {moveHistory.reduce((acc, move, index) => {
               if (index % 2 === 0) {
-                acc.push(`${Math.floor(index / 2) + 1}. ${move}`);
+                acc.push({
+                  move_number: Math.floor(index / 2) + 1,
+                  white_move: move,
+                  black_move: null,
+                });
               } else {
-                acc[acc.length - 1] += ` ${move}`;
+                acc[acc.length - 1].black_move = move;
               }
               return acc;
             }, []).map((movePair, index) => (
-              <p key={index} className="px-2">{movePair}</p>
+              <div key={index} className="flex flex-row gap-2 items-center">
+                <p>{movePair.move_number}.</p>
+                <p>{movePair.white_move}</p>
+                <p>{movePair.black_move}</p>
+              </div>
             ))}
           </div>
         </div>
