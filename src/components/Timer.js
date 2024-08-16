@@ -21,6 +21,18 @@ export default function Timer({ initialTime, onPause, onTimeOut }) {
     return () => clearInterval(interval);
   }, [time, onPause, onTimeOut]);
 
+  useEffect(() => {
+    const handleTimeControlChange = () => {
+      setTime(initialTime * 60);
+    };
+
+    window.addEventListener('timeResetEvent', handleTimeControlChange);
+
+    return () => {
+      window.removeEventListener('timeResetEvent', handleTimeControlChange);
+    };
+  }, []);
+
   const formattedTime = moment.utc(time * 1000).format('mm:ss');
 
   return (

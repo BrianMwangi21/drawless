@@ -70,7 +70,7 @@ export default function Chessboard() {
 
   const resetGame = () => {
     chess.reset();
-    setTimeControl(10);
+    resetTimes();
     setMoveHistory([]);
     setConfig(prevConfig => ({
       ...prevConfig,
@@ -96,7 +96,7 @@ export default function Chessboard() {
 
   const changeOrientation = () => {
     chess.reset();
-    setTimeControl(10);
+    resetTimes();
     setMoveHistory([]);
     setUserColor(prevColor => {
       const newColor = prevColor === 'white' ? 'black' : 'white';
@@ -118,6 +118,11 @@ export default function Chessboard() {
       setTurnColor(newColor);
       return newColor;
     });
+  }
+
+  const resetTimes = () => {
+    const event = new CustomEvent('timeResetEvent', {});
+    window.dispatchEvent(event);
   }
 
   const onTimeEnd = () => {
@@ -174,7 +179,7 @@ export default function Chessboard() {
               <FaRobot size={32} />
               <p className="font-bold text-xl">Bot (Stockfish - depth 10)</p>
             </div>
-            <Timer initialTime={timeControl} onPause={userColor == turnColor} onTimeOut={() => alert("Time's up!")} />
+            <Timer initialTime={timeControl} onPause={userColor == turnColor} onTimeEnd={onTimeEnd} />
           </div>
 
           <Chessground
@@ -188,7 +193,7 @@ export default function Chessboard() {
               <RxAvatar size={32} />
               <p className="font-bold text-xl">You</p>
             </div>
-            <Timer initialTime={timeControl} onPause={userColor != turnColor} onTimeOut={() => alert("Time's up!")} />
+            <Timer initialTime={timeControl} onPause={userColor != turnColor} onTimeEnd={onTimeEnd} />
           </div>
 
         </div>
