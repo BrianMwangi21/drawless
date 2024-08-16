@@ -10,6 +10,7 @@ import 'chessground/assets/chessground.base.css';
 import 'chessground/assets/chessground.brown.css';
 import 'chessground/assets/chessground.cburnett.css';
 import { getBestMoveFromStockfish } from './../utils/stockfish'
+import toast from 'react-hot-toast';
 
 export default function Chessboard() {
   const getValidMoves = (chessInstance) => {
@@ -127,6 +128,7 @@ export default function Chessboard() {
 
   const onTimeEnd = () => {
     // What happens when time ends is a mystery
+    toast("Oooooops! Time is up");
   }
 
   const insertRandomPiece = () => {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import moment from "moment";
 
-export default function Timer({ initialTime, onPause, onTimeOut }) {
+export default function Timer({ initialTime, onPause, onTimeEnd }) {
   const [time, setTime] = useState(initialTime * 60);
 
   useEffect(() => {
@@ -11,7 +11,7 @@ export default function Timer({ initialTime, onPause, onTimeOut }) {
       setTime((prevTime) => {
         if (prevTime <= 1) {
           clearInterval(interval);
-          onTimeOut();
+          onTimeEnd();
           return 0;
         }
         return prevTime - 1;
@@ -19,7 +19,7 @@ export default function Timer({ initialTime, onPause, onTimeOut }) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [time, onPause, onTimeOut]);
+  }, [time, onPause, onTimeEnd]);
 
   useEffect(() => {
     const handleTimeControlChange = () => {
