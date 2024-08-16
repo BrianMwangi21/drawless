@@ -107,6 +107,10 @@ export default function Chessboard() {
     });
   }
 
+  const insertRandomPiece = () => {
+    // Here is where the magic is
+  }
+
   const [chess, setChess] = useState(new Chess());
   const [moveHistory, setMoveHistory] = useState([]);
   const [userColor, setUserColor] = useState('white');
@@ -174,6 +178,9 @@ export default function Chessboard() {
         </div>
         <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={changeOrientation}>
           Play as {userColor === 'white' ? 'Black' : 'White'}
+        </div>
+        <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={insertRandomPiece}>
+          Insert Random Pieces
         </div>
       </div>
     </div>
