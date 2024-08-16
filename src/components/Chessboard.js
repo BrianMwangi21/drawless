@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { Chess, SQUARES } from 'chess.js';
 import Chessground from '@react-chess/chessground';
+import { RxAvatar } from "react-icons/rx";
+import { FaRobot } from "react-icons/fa";
 import 'chessground/assets/chessground.base.css';
 import 'chessground/assets/chessground.brown.css';
 import 'chessground/assets/chessground.cburnett.css';
@@ -81,6 +83,11 @@ export default function Chessboard() {
         check: false,
       },
     }));
+
+    // If user is black, play the first move
+    if (userColor == 'black') {
+      playOpponentMove();
+    }
   }
 
   const changeOrientation = () => {
@@ -148,13 +155,30 @@ export default function Chessboard() {
 
   return (
     <div className="w-full h-full flex flex-col gap-4 justify-center place-items-center">
-      <div className="flex flex-row gap-2 h-fit">
-        <Chessground
-          config={config}
-          width={500}
-          height={500}
-        />
-        <div className="flex flex-col h-[500px] w-48">
+      <div className="flex flex-row gap-6 h-fit">
+        <div className="flex flex-col gap-2 h-fit">
+          <div className="p-2 flex flex-row gap-4 justify-between items-center">
+            <div className="flex flex-row gap-2 justify-start items-center">
+              <FaRobot size={32} />
+              <p className="font-bold text-xl">Bot (Stockfish - depth 10)</p>
+            </div>
+          </div>
+
+          <Chessground
+            config={config}
+            width={500}
+            height={500}
+          />
+
+          <div className="p-2 flex flex-row gap-4 justify-between items-center">
+            <div className="flex flex-row gap-2 justify-start items-center">
+              <RxAvatar size={32} />
+              <p className="font-bold text-xl">You</p>
+            </div>
+          </div>
+
+        </div>
+        <div className="flex flex-col h-full w-48 p-2">
           <p className="font-bold w-full text-xl border-b-2 border-white-500">Moves</p>
 
           <div className="h-full w-full flex-col gap-2 overflow-auto">
