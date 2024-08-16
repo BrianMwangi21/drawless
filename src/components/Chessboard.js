@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Chess, SQUARES } from 'chess.js';
 import Chessground from '@react-chess/chessground';
 import 'chessground/assets/chessground.base.css';
@@ -36,13 +36,13 @@ export default function Chessboard() {
         fen: chess.fen(),
         check: checkColor,
       }));
-      playBlackMove();
+      playOpponentMove();
     } else {
       console.log("Invalid move:", orig, dest);
     }
   };
 
-  const playBlackMove = async () => {
+  const playOpponentMove = async () => {
     const fen = chess.fen();
     const bestMove = await getBestMoveFromStockfish(fen);
 
@@ -51,29 +51,72 @@ export default function Chessboard() {
       const checkColor = checkForCheck(chess);
       setMoveHistory(prev => [...prev, bestMove]);
 
-      setConfig({
-        ...config,
+      setConfig(prevConfig => ({
+        ...prevConfig,
         fen: chess.fen(),
-        turnColor: 'white',
         check: checkColor,
         movable: {
-          ...config.movable,
-          color: 'white',
+          ...prevConfig.movable,
           dests: getValidMoves(chess),
         },
-      });
+      }));
     }
   };
 
+  const resetGame = () => {
+    chess.reset();
+    setMoveHistory([]);
+    setConfig(prevConfig => ({
+      ...prevConfig,
+      fen: chess.fen(),
+      orientation: userColor,
+      turnColor: userColor,
+      movable: {
+        ...prevConfig.movable,
+        color: userColor,
+        dests: getValidMoves(chess),
+      },
+      highlight: {
+        lastMove: false,
+        check: false,
+      },
+    }));
+  }
+
+  const changeOrientation = () => {
+    chess.reset();
+    setMoveHistory([]);
+    setUserColor(prevColor => {
+      const newColor = prevColor === 'white' ? 'black' : 'white';
+      setConfig(prevConfig => ({
+        ...prevConfig,
+        fen: chess.fen(),
+        orientation: newColor,
+        turnColor: newColor,
+        movable: {
+          ...prevConfig.movable,
+          color: newColor,
+          dests: getValidMoves(chess),
+        },
+        highlight: {
+          lastMove: false,
+          check: false,
+        },
+      }));
+      return newColor;
+    });
+  }
+
   const [chess, setChess] = useState(new Chess());
   const [moveHistory, setMoveHistory] = useState([]);
+  const [userColor, setUserColor] = useState('white');
   const [config, setConfig] = useState({
     fen: chess.fen(),
-    orientation: 'white',
-    turnColor: 'white',
+    orientation: userColor,
+    turnColor: userColor,
     movable: {
       free: false,
-      color: 'white',
+      color: userColor,
       showDests: true,
       dests: getValidMoves(chess),
       events: {
@@ -93,27 +136,44 @@ export default function Chessboard() {
     },
   });
 
-  return (
-    <div className="flex flex-row gap-2">
-      <Chessground
-        config={config}
-        width={600}
-        height={600}
-      />
-      <div className="flex flex-col h-[600px] w-48">
-        <p className="font-bold w-full text-xl border-b-2 border-white-500">Moves</p>
+  useEffect(() => {
+    if (userColor == 'black') {
+      playOpponentMove();
+    }
+  }, [userColor]);
 
-        <div className="h-full w-full flex-col gap-2 overflow-auto">
-          {moveHistory.reduce((acc, move, index) => {
-            if (index % 2 === 0) {
-              acc.push(`${Math.floor(index / 2) + 1}. ${move}`);
-            } else {
-              acc[acc.length - 1] += ` ${move}`;
-            }
-            return acc;
-          }, []).map((movePair, index) => (
-            <p key={index} className="px-2">{movePair}</p>
-          ))}
+  return (
+    <div className="w-full h-full flex flex-col gap-4 justify-center place-items-center">
+      <div className="flex flex-row gap-2 h-fit">
+        <Chessground
+          config={config}
+          width={500}
+          height={500}
+        />
+        <div className="flex flex-col h-[500px] w-48">
+          <p className="font-bold w-full text-xl border-b-2 border-white-500">Moves</p>
+
+          <div className="h-full w-full flex-col gap-2 overflow-auto">
+            {moveHistory.reduce((acc, move, index) => {
+              if (index % 2 === 0) {
+                acc.push(`${Math.floor(index / 2) + 1}. ${move}`);
+              } else {
+                acc[acc.length - 1] += ` ${move}`;
+              }
+              return acc;
+            }, []).map((movePair, index) => (
+              <p key={index} className="px-2">{movePair}</p>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-row gap-2">
+        <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={resetGame}>
+          Reset Game
+        </div>
+        <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={changeOrientation}>
+          Play as {userColor === 'white' ? 'Black' : 'White'}
         </div>
       </div>
     </div>

@@ -7,7 +7,7 @@ export default function Home() {
         <p className="font-mono font-bold text-2xl text-center">drawless</p>
       </div>
 
-      <div className="w-full h-full flex justify-center place-items-center">
+      <div className="w-full h-full flex flex-col gap-4 justify-center place-items-center">
         <Chessboard />
       </div>
     </main>
