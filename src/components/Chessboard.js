@@ -20,8 +20,22 @@ export default function Chessboard() {
     return dests;
   };
 
+  const checkForCheck = (chessInstance) => {
+    if (chessInstance.inCheck()) {
+      return chessInstance.turn() === 'w' ? 'white' : 'black';
+    }
+    return false;
+  };
+
   const onMove = (orig, dest) => {
     if (chess.move({ from: orig, to: dest })) {
+      const checkColor = checkForCheck(chess);
+      setMoveHistory(prev => [...prev, `${orig}${dest}`]);
+      setConfig(prevConfig => ({
+        ...prevConfig,
+        fen: chess.fen(),
+        check: checkColor,
+      }));
       playBlackMove();
     } else {
       console.log("Invalid move:", orig, dest);
@@ -34,11 +48,14 @@ export default function Chessboard() {
 
     if (bestMove) {
       chess.move(bestMove);
+      const checkColor = checkForCheck(chess);
+      setMoveHistory(prev => [...prev, bestMove]);
 
       setConfig({
         ...config,
         fen: chess.fen(),
         turnColor: 'white',
+        check: checkColor,
         movable: {
           ...config.movable,
           color: 'white',
@@ -46,26 +63,10 @@ export default function Chessboard() {
         },
       });
     }
-
-    // const possibleMoves = chess.moves({ verbose: true });
-    // if (possibleMoves.length === 0) return;
-    //
-    // const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-    // chess.move(randomMove);
-    //
-    // setConfig({
-    //   ...config,
-    //   fen: chess.fen(),
-    //   turnColor: 'white',
-    //   movable: {
-    //     ...config.movable,
-    //     color: 'white',
-    //     dests: getValidMoves(chess)
-    //   }
-    // });
   };
 
   const [chess, setChess] = useState(new Chess());
+  const [moveHistory, setMoveHistory] = useState([]);
   const [config, setConfig] = useState({
     fen: chess.fen(),
     orientation: 'white',
@@ -93,10 +94,28 @@ export default function Chessboard() {
   });
 
   return (
-    <Chessground
-      config={config}
-      width={600}
-      height={600}
-    />
+    <div className="flex flex-row gap-2">
+      <Chessground
+        config={config}
+        width={600}
+        height={600}
+      />
+      <div className="flex flex-col h-[600px] w-48">
+        <p className="font-bold w-full text-xl border-b-2 border-white-500">Moves</p>
+
+        <div className="h-full w-full flex-col gap-2 overflow-auto">
+          {moveHistory.reduce((acc, move, index) => {
+            if (index % 2 === 0) {
+              acc.push(`${Math.floor(index / 2) + 1}. ${move}`);
+            } else {
+              acc[acc.length - 1] += ` ${move}`;
+            }
+            return acc;
+          }, []).map((movePair, index) => (
+            <p key={index} className="px-2">{movePair}</p>
+          ))}
+        </div>
+      </div>
+    </div>
   )
 }

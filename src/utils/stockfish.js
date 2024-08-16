@@ -1,4 +1,4 @@
-export const getBestMoveFromStockfish = async (fen, depth = 15) => {
+export const getBestMoveFromStockfish = async (fen, depth = 10) => {
   try {
     const response = await fetch(`https://stockfish.online/api/s/v2.php?fen=${encodeURIComponent(fen)}&depth=${depth}`);
     const data = await response.json();
