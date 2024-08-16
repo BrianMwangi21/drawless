@@ -213,9 +213,8 @@ export default function Chessboard() {
               }
               return acc;
             }, []).map((movePair, index) => (
-              <div key={index} className="flex flex-row gap-2 items-center">
-                <p>{movePair.move_number}.</p>
-                <p>{movePair.white_move}</p>
+              <div key={index} className="flex flex-row gap-2 items-center justify-between">
+                <p>{movePair.move_number}. {movePair.white_move}</p>
                 <p>{movePair.black_move}</p>
               </div>
             ))}
