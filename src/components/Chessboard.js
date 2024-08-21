@@ -83,10 +83,6 @@ export default function Chessboard() {
         color: userColor,
         dests: getValidMoves(chess),
       },
-      highlight: {
-        lastMove: false,
-        check: false,
-      },
     }));
 
     // If user is black, play the first move
@@ -110,10 +106,6 @@ export default function Chessboard() {
           ...prevConfig.movable,
           color: newColor,
           dests: getValidMoves(chess),
-        },
-        highlight: {
-          lastMove: false,
-          check: false,
         },
       }));
       setTurnColor(newColor);
