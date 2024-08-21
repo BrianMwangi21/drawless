@@ -31,9 +31,16 @@ export default function Chessboard() {
     return false;
   };
 
+  const checkForCheckmate = (chessInstance) => {
+    if (chessInstance.isCheckmate()) {
+      toast("Oooooops! Someone lost. How sad!");
+    }
+  };
+
   const onMove = (orig, dest) => {
     if (chess.move({ from: orig, to: dest })) {
       const checkColor = checkForCheck(chess);
+      checkForCheckmate(chess);
       setMoveHistory(prev => [...prev, `${orig}${dest}`]);
       setConfig(prevConfig => ({
         ...prevConfig,
@@ -54,6 +61,7 @@ export default function Chessboard() {
     if (bestMove) {
       chess.move(bestMove);
       const checkColor = checkForCheck(chess);
+      checkForCheckmate(chess);
       setMoveHistory(prev => [...prev, bestMove]);
 
       setConfig(prevConfig => ({
@@ -119,7 +127,6 @@ export default function Chessboard() {
   }
 
   const onTimeEnd = () => {
-    // What happens when time ends is a mystery
     toast("Oooooops! Time is up");
   }
 
@@ -132,6 +139,7 @@ export default function Chessboard() {
   const [userColor, setUserColor] = useState('white');
   const [turnColor, setTurnColor] = useState(userColor);
   const [timeControl, setTimeControl] = useState(10);
+  const [showTime, setShowTime] = useState(false);
   const [config, setConfig] = useState({
     fen: chess.fen(),
     orientation: userColor,
@@ -173,7 +181,7 @@ export default function Chessboard() {
               <FaRobot size={32} />
               <p className="font-bold text-xl">Bot (Stockfish - depth 10)</p>
             </div>
-            <Timer initialTime={timeControl} onPause={userColor == turnColor} onTimeEnd={onTimeEnd} />
+            {showTime && <Timer initialTime={timeControl} onPause={userColor == turnColor} onTimeEnd={onTimeEnd} />}
           </div>
 
           <Chessground
@@ -187,11 +195,11 @@ export default function Chessboard() {
               <RxAvatar size={32} />
               <p className="font-bold text-xl">You</p>
             </div>
-            <Timer initialTime={timeControl} onPause={userColor != turnColor} onTimeEnd={onTimeEnd} />
+            {showTime && <Timer initialTime={timeControl} onPause={userColor == turnColor} onTimeEnd={onTimeEnd} />}
           </div>
 
         </div>
-        <div className="flex flex-col h-full w-48 p-2">
+        <div className="flex flex-col h-[600px] w-48 p-2">
           <p className="font-bold w-full text-xl border-b-2 border-white-500">Moves</p>
 
           <div className="h-full w-full flex-col gap-2 overflow-auto">
