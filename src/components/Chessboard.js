@@ -37,9 +37,18 @@ export default function Chessboard() {
     }
   };
 
+  const checkForDraw = (chessInstance) => {
+    if (chessInstance.isDraw()) {
+      toast("Oooooops! We are at a draw, how boring!");
+      toast("Let's make it interesting!");
+      insertRandomPiece();
+    }
+  };
+
   const onMove = (orig, dest) => {
     if (chess.move({ from: orig, to: dest })) {
       const checkColor = checkForCheck(chess);
+      checkForDraw(chess);
       checkForCheckmate(chess);
       setMoveHistory(prev => [...prev, `${orig}${dest}`]);
       setConfig(prevConfig => ({
@@ -61,6 +70,7 @@ export default function Chessboard() {
     if (bestMove) {
       chess.move(bestMove);
       const checkColor = checkForCheck(chess);
+      checkForDraw(chess);
       checkForCheckmate(chess);
       setMoveHistory(prev => [...prev, bestMove]);
 
@@ -131,7 +141,60 @@ export default function Chessboard() {
   }
 
   const insertRandomPiece = () => {
-    // Here is where the magic is
+    const history = chess.history({ verbose: true });
+    let whiteCapturedPieces = [];
+    let blackCapturedPieces = [];
+
+    history.forEach(move => {
+      if (move.captured) {
+        if (move.color == 'w') {
+          blackCapturedPieces.push(move.captured);
+        } else {
+          whiteCapturedPieces.push(move.captured)
+        }
+      }
+    });
+
+    const randomWhitePiece = whiteCapturedPieces[Math.floor(Math.random() * whiteCapturedPieces.length)];
+    const randomBlackPiece = blackCapturedPieces[Math.floor(Math.random() * blackCapturedPieces.length)];
+    const emptySquares = [];
+
+    SQUARES.forEach(square => {
+      if (!chess.get(square)) {
+        emptySquares.push(square);
+      }
+    });
+
+    let whiteSquare, blackSquare;
+
+    // 1. Ensure black and white squares are not the same and are in the correct rows
+    do {
+      whiteSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
+    } while (whiteSquare[1] > 4);
+
+    do {
+      blackSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
+    } while (blackSquare[1] < 5 || blackSquare === whiteSquare);
+
+    // 2. Ensure that the added piece cannot be immediately captured
+    const validWhiteMoves = chess.moves({ square: whiteSquare, verbose: true });
+    const validBlackMoves = chess.moves({ square: blackSquare, verbose: true });
+
+    if (validWhiteMoves.some(move => move.to === blackSquare) || validBlackMoves.some(move => move.to === whiteSquare)) {
+      return insertRandomPiece();
+    }
+
+    chess.put({ type: randomWhitePiece.toLowerCase(), color: 'w' }, whiteSquare);
+    chess.put({ type: randomBlackPiece.toLowerCase(), color: 'b' }, blackSquare);
+
+    setConfig(prevConfig => ({
+      ...prevConfig,
+      fen: chess.fen(),
+      movable: {
+        ...prevConfig.movable,
+        dests: getValidMoves(chess),
+      },
+    }));
   }
 
   const [chess, setChess] = useState(new Chess());
