@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { Chess, SQUARES } from 'chess.js';
+import { Chess, SQUARES, validateFen } from 'chess.js';
 import Chessground from '@react-chess/chessground';
 import { RxAvatar } from "react-icons/rx";
 import { FaRobot } from "react-icons/fa";
@@ -41,7 +41,7 @@ export default function Chessboard() {
     if (chessInstance.isDraw()) {
       toast("Oooooops! We are at a draw, how boring!");
       toast("Let's make it interesting!");
-      insertRandomPiece();
+      insertRandomPiece(chessInstance);
     }
   };
 
@@ -140,11 +140,12 @@ export default function Chessboard() {
     toast("Oooooops! Time is up");
   }
 
-  const insertRandomPiece = () => {
-    const history = chess.history({ verbose: true });
+  const insertRandomPiece = (chessInstance) => {
+    const history = chessInstance.history({ verbose: true });
     let whiteCapturedPieces = [];
     let blackCapturedPieces = [];
 
+    console.log("IRP: Getting captures from history", history);
     history.forEach(move => {
       if (move.captured) {
         if (move.color == 'w') {
@@ -154,45 +155,80 @@ export default function Chessboard() {
         }
       }
     });
+    console.log("IRP: White Captured Pieces", whiteCapturedPieces);
+    console.log("IRP: Black Captured Pieces", blackCapturedPieces);
 
-    const randomWhitePiece = whiteCapturedPieces[Math.floor(Math.random() * whiteCapturedPieces.length)];
-    const randomBlackPiece = blackCapturedPieces[Math.floor(Math.random() * blackCapturedPieces.length)];
+    if (whiteCapturedPieces.length === 0 || blackCapturedPieces.length == 0) {
+      toast("Both sides must have captured at least one piece each since last random insert");
+      return;
+    }
+
+    console.log("IRP: Selecting random pieces and checking for empty squares");
+    const whitePiece = whiteCapturedPieces[Math.floor(Math.random() * whiteCapturedPieces.length)];
+    const blackPiece = blackCapturedPieces[Math.floor(Math.random() * blackCapturedPieces.length)];
     const emptySquares = [];
-
     SQUARES.forEach(square => {
-      if (!chess.get(square)) {
+      if (!chessInstance.get(square)) {
         emptySquares.push(square);
       }
     });
+    console.log("IRP: Random White Piece", whitePiece);
+    console.log("IRP: Random Black Piece", blackPiece);
+    console.log("IRP: Empty Squares", emptySquares);
 
     let whiteSquare, blackSquare;
-
-    // 1. Ensure black and white squares are not the same and are in the correct rows
     do {
       whiteSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
     } while (whiteSquare[1] > 4);
-
+    console.log("IRP: Selected White Square", whiteSquare);
     do {
       blackSquare = emptySquares[Math.floor(Math.random() * emptySquares.length)];
     } while (blackSquare[1] < 5 || blackSquare === whiteSquare);
+    console.log("IRP: Selected Black Square", blackSquare);
 
-    // 2. Ensure that the added piece cannot be immediately captured
-    const validWhiteMoves = chess.moves({ square: whiteSquare, verbose: true });
-    const validBlackMoves = chess.moves({ square: blackSquare, verbose: true });
-
-    if (validWhiteMoves.some(move => move.to === blackSquare) || validBlackMoves.some(move => move.to === whiteSquare)) {
-      return insertRandomPiece();
+    const validMoves = getValidMoves(chessInstance);
+    let whitePieceIsSafe = true;
+    for (const [square, moves] of validMoves) {
+      if (moves.includes(whiteSquare) && chessInstance.get(square).color === 'b') {
+        whitePieceIsSafe = false;
+        break;
+      }
+    }
+    if (!whitePieceIsSafe) {
+      console.log("IRP: White Piece is not safe, running again");
+      return insertRandomPiece(chessInstance);
+    }
+    let blackPieceIsSafe = true;
+    for (const [square, moves] of validMoves) {
+      if (moves.includes(blackSquare) && chessInstance.get(square).color === 'w') {
+        blackPieceIsSafe = false;
+        break;
+      }
+    }
+    if (!blackPieceIsSafe) {
+      console.log("IRP: Black Piece is not safe, running again");
+      return insertRandomPiece(chessInstance);
     }
 
-    chess.put({ type: randomWhitePiece.toLowerCase(), color: 'w' }, whiteSquare);
-    chess.put({ type: randomBlackPiece.toLowerCase(), color: 'b' }, blackSquare);
+    chessInstance.put({ type: whitePiece.toLowerCase(), color: 'w' }, whiteSquare);
+    chessInstance.put({ type: blackPiece.toLowerCase(), color: 'b' }, blackSquare);
 
+    let validation = validateFen(chessInstance.fen());
+
+    if (!validation.ok) {
+      console.log("IRP: New Fen Validation failed, running again");
+      return insertRandomPiece(chessInstance);
+    }
+
+    toast(`Added white ${whitePiece} at ${whiteSquare} and black ${blackPiece} at ${blackSquare}`, { duration: 8000 });
+    setMoveHistory(prev => [...prev, `Added ${whitePiece} at ${whiteSquare}`, `Added ${blackPiece} at ${blackSquare}`]);
     setConfig(prevConfig => ({
       ...prevConfig,
-      fen: chess.fen(),
+      fen: chessInstance.fen(),
+      check: checkForCheck(chessInstance),
       movable: {
         ...prevConfig.movable,
-        dests: getValidMoves(chess),
+        dests: getValidMoves(chessInstance),
       },
     }));
   }
@@ -294,7 +330,7 @@ export default function Chessboard() {
         <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={changeOrientation}>
           Play as {userColor === 'white' ? 'Black' : 'White'}
         </div>
-        <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={insertRandomPiece}>
+        <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={() => insertRandomPiece(chess)}>
           Insert Random Pieces
         </div>
       </div>
