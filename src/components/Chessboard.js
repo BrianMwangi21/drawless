@@ -248,6 +248,8 @@ export default function Chessboard() {
   const [timeControl, setTimeControl] = useState(10);
   const [showTime, setShowTime] = useState(false);
   const [botThinking, setBotThinking] = useState(false);
+  const [buttonVisible, setButtonVisible] = useState(false);
+  const [buttonTransition, setButtonTransition] = useState(false);
   const [config, setConfig] = useState({
     fen: chess.fen(),
     orientation: userColor,
@@ -280,6 +282,17 @@ export default function Chessboard() {
       playOpponentMove();
     }
   }, [userColor]);
+
+  useEffect(() => {
+    const showInterval = setInterval(() => {
+      setButtonTransition(true);
+      setButtonVisible(true);
+      setTimeout(() => {
+        setButtonVisible(false);
+      }, 10000);
+    }, 60000);
+    return () => clearInterval(showInterval);
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col gap-4 justify-center place-items-center">
@@ -346,7 +359,14 @@ export default function Chessboard() {
         <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={changeOrientation}>
           Play as {userColor === 'white' ? 'Black' : 'White'}
         </div>
-        <div className="cursor-pointer p-2 border-2 border-white-500 rounded-md" onClick={() => insertRandomPiece(chess)}>
+        <div
+          className={`cursor-pointer p-2 border-2 border-white-500 rounded-md bg-sky-500 ${buttonVisible ? 'opacity-100' : 'opacity-0'
+            } ${buttonTransition ? 'transition-opacity duration-500 ease-in-out' : ''}`}
+          onClick={() => {
+            setButtonVisible(false);
+            insertRandomPiece(chess)
+          }}
+        >
           Insert Random Pieces
         </div>
       </div>
