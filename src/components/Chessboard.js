@@ -34,6 +34,10 @@ export default function Chessboard() {
   const checkForGameOver = (chessInstance) => {
     if (chessInstance.isGameOver()) {
       toast("Oooooops! Someone lost. How sad!");
+      setConfig(prevConfig => ({
+        ...prevConfig,
+        viewOnly: true,
+      }));
     }
   };
 
@@ -63,6 +67,7 @@ export default function Chessboard() {
   };
 
   const playOpponentMove = async () => {
+    setBotThinking(true);
     setTurnColor(prevColor => prevColor == 'white' ? 'black' : 'white');
     const fen = chess.fen();
     const bestMove = await getBestMoveFromStockfish(fen);
@@ -84,6 +89,7 @@ export default function Chessboard() {
         },
       }));
       setTurnColor(prevColor => prevColor == 'white' ? 'black' : 'white');
+      setBotThinking(false);
     }
   };
 
@@ -101,6 +107,7 @@ export default function Chessboard() {
         color: userColor,
         dests: getValidMoves(chess),
       },
+      viewOnly: false,
     }));
 
     // If user is black, play the first move
@@ -125,6 +132,7 @@ export default function Chessboard() {
           color: newColor,
           dests: getValidMoves(chess),
         },
+        viewOnly: false,
       }));
       setTurnColor(newColor);
       return newColor;
@@ -239,6 +247,7 @@ export default function Chessboard() {
   const [turnColor, setTurnColor] = useState(userColor);
   const [timeControl, setTimeControl] = useState(10);
   const [showTime, setShowTime] = useState(false);
+  const [botThinking, setBotThinking] = useState(false);
   const [config, setConfig] = useState({
     fen: chess.fen(),
     orientation: userColor,
@@ -263,6 +272,7 @@ export default function Chessboard() {
       visible: true,
       eraseOnClick: true,
     },
+    viewOnly: false,
   });
 
   useEffect(() => {
@@ -279,6 +289,12 @@ export default function Chessboard() {
             <div className="flex flex-row gap-2 justify-start items-center">
               <FaRobot size={32} />
               <p className="font-bold text-xl">Bot (Stockfish - depth 10)</p>
+              {botThinking && (
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+                </span>
+              )}
             </div>
             {showTime && <Timer initialTime={timeControl} onPause={userColor == turnColor} onTimeEnd={onTimeEnd} />}
           </div>
