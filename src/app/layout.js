@@ -5,8 +5,8 @@ import { Toaster } from "react-hot-toast";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "drawless - Chess. Without the draws",
-  description: "Play chess without drawing. Someone must win",
+  title: "drawless - Chess. Without limits",
+  description: "Play chess with random pieces at intervals",
 };
 
 export default function RootLayout({ children }) {
