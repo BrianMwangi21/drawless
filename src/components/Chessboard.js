@@ -31,8 +31,8 @@ export default function Chessboard() {
     return false;
   };
 
-  const checkForCheckmate = (chessInstance) => {
-    if (chessInstance.isCheckmate()) {
+  const checkForGameOver = (chessInstance) => {
+    if (chessInstance.isGameOver()) {
       toast("Oooooops! Someone lost. How sad!");
     }
   };
@@ -49,7 +49,7 @@ export default function Chessboard() {
     if (chess.move({ from: orig, to: dest })) {
       const checkColor = checkForCheck(chess);
       checkForDraw(chess);
-      checkForCheckmate(chess);
+      checkForGameOver(chess);
       setMoveHistory(prev => [...prev, `${orig}${dest}`]);
       setConfig(prevConfig => ({
         ...prevConfig,
@@ -71,7 +71,7 @@ export default function Chessboard() {
       chess.move(bestMove);
       const checkColor = checkForCheck(chess);
       checkForDraw(chess);
-      checkForCheckmate(chess);
+      checkForGameOver(chess);
       setMoveHistory(prev => [...prev, bestMove]);
 
       setConfig(prevConfig => ({
