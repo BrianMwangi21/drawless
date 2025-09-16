@@ -248,8 +248,7 @@ export default function Chessboard() {
   const [timeControl, setTimeControl] = useState(10);
   const [showTime, setShowTime] = useState(false);
   const [botThinking, setBotThinking] = useState(false);
-  const [buttonVisible, setButtonVisible] = useState(false);
-  const [buttonTransition, setButtonTransition] = useState(false);
+  const [buttonDisabled, setButtonDisabled] = useState(true);
   const [config, setConfig] = useState({
     fen: chess.fen(),
     orientation: userColor,
@@ -284,14 +283,10 @@ export default function Chessboard() {
   }, [userColor]);
 
   useEffect(() => {
-    const showInterval = setInterval(() => {
-      setButtonTransition(true);
-      setButtonVisible(true);
-      setTimeout(() => {
-        setButtonVisible(false);
-      }, 10000);
+    const enableInterval = setInterval(() => {
+      setButtonDisabled(false);
     }, 60000);
-    return () => clearInterval(showInterval);
+    return () => clearInterval(enableInterval);
   }, []);
 
   return (
@@ -360,12 +355,14 @@ export default function Chessboard() {
           Play as {userColor === 'white' ? 'Black' : 'White'}
         </div>
         <div
-          className={`cursor-pointer p-2 border-2 border-white-500 rounded-md bg-sky-500 ${buttonVisible ? 'opacity-100' : 'opacity-0'
-            } ${buttonTransition ? 'transition-opacity duration-500 ease-in-out' : ''}`}
+          className={`cursor-pointer p-2 border-2 border-white-500 rounded-md bg-sky-500 ${buttonDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
           onClick={() => {
-            setButtonVisible(false);
-            insertRandomPiece(chess)
+            if (!buttonDisabled) {
+              setButtonDisabled(true);
+              insertRandomPiece(chess);
+            }
           }}
+          disabled={buttonDisabled}
         >
           Insert Random Pieces
         </div>
